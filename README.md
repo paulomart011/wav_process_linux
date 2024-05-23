@@ -37,12 +37,12 @@ mkdir home/usuarioftp/FTPSpeech3
 mkdir home/usuarioftp/FTPSpeech4
 mkdir home/usuarioftp/FTPSpeech5
 mkdir home/usuarioftp/FTPSpeech6
-mkdir home/usuarioftp/FTPSpeech1/speechanalytics1
-mkdir home/usuarioftp/FTPSpeech2/speechanalytics2
-mkdir home/usuarioftp/FTPSpeech3/speechanalytics3
-mkdir home/usuarioftp/FTPSpeech4/speechanalytics4
-mkdir home/usuarioftp/FTPSpeech5/speechanalytics5
-mkdir home/usuarioftp/FTPSpeech6/speechanalytics6
+mkdir home/usuarioftp/FTPSpeech1/speechanalytics
+mkdir home/usuarioftp/FTPSpeech2/speechanalytics
+mkdir home/usuarioftp/FTPSpeech3/speechanalytics
+mkdir home/usuarioftp/FTPSpeech4/speechanalytics
+mkdir home/usuarioftp/FTPSpeech5/speechanalytics
+mkdir home/usuarioftp/FTPSpeech6/speechanalytics
 ```
 La librería a usar para que el servidor sirva como FTP es vsftpd, la cual se instala de la siguiente forma:
 
@@ -87,17 +87,47 @@ Si la conexión es exitosa, ya estaria listo el FTP en el servidor intermedio.
 
 ## 2. Configuración subida a SFTP en Servidor Intermedio Linux
 
-La librería a usar para enviar archivos al SFTP final es lftp, la cual se instala de la siguiente forma:
+La librería a usar para enviar archivos al SFTP final es el API de Amazon S3, la cual se instala de la siguiente forma:
 
+Obtengo el zip instalador:
 ```
-sudo apt install lftp
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+```
+Descomprimo el archivo:
+```
+unzip awscliv2.zip
+```
+Instalo AWS CLI:
+```
+sudo ./aws/install
+```
+Para asegurarnos que se instalo bien:
+```
+aws --version
+```
+Luego, tenemos que configurar nuestras credenciales:
+```
+aws configure
 ```
 
-Copiar el archivo UploadFilesToSFTP.sh a la ruta /usr/sbin/ y se deberá modificar con las credenciales a usar del SFTP final:
+Nos pedirá ingresar la siguiente información (la cual se solicita a INFRA):
 ```
-ftpuser="womcolombia-user"
-ftppassword="pwd"
-recordingremotehost="usftpcorp.inconcertcc.com"
+AWS Access Key ID [None]: YOUR_ACCESS_KEY
+AWS Secret Access Key [None]: YOUR_SECRET_KEY
+Default region name [None]: us-east-1
+Default output format [None]: json
+```
+Con esto ya tenemos instalado AWS.
+
+Lo que sigues es configurar el archivo que realizará la carga, para ello copiar el archivo UploadFilesToSFTP.sh a la ruta /usr/sbin/ y se deberá modificar los siguientes datos:
+```
+numberOfAudios=100 						#NUMERO DE AUDIOS QUE TOMARA POR MINUTO
+directory="/home/usuarioftp" 					#RUTA DEL USUARIO FTP
+logFile="/tmp/LogUploadFilesToSFTP.log"				# RUTA DE LOGS
+LogEnabled=1							# 0 PARA DESACTIVAR LOGS Y 1 PARA ACTIVAR
+remotedirPath="/speechanalytics"				#RUTA DEL BUCKET EN S3
+BUCKET_NAME="sftp-test-speech"					#NOMBRE DEL BUCKET DE S3
+parallelJobs=2							#NUMERO DE PROCESO EN PARALELO (POR LO GENERAL SE PONE EL MISMO NUMERO DE PROCESADORES DEL SERVER LINUX)
 ```
 Luego nos aseguramos el formato unix y damos permisos al archivo copiado:
 ```
