@@ -87,53 +87,35 @@ Si la conexión es exitosa, ya estaria listo el FTP en el servidor intermedio.
 
 ## 2. Configuración subida a SFTP en Servidor Intermedio Linux
 
-La librería a usar para enviar archivos al SFTP final es el API de Amazon S3, la cual se instala de la siguiente forma:
+Crea la carpeta /home/S3Upload y copia todos los archivos de la carpeta "2. Servidor Linux SFTP".
 
-Obtengo el zip instalador:
+Posicionado en la carpeta S3Upload, ejecuta el siguiente comando:
 ```
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+npm install aws-sdk
 ```
-Descomprimo el archivo:
+Luego, crea o actualiza el archivo "~/.aws/credentials" con tus credenciales:
 ```
-unzip awscliv2.zip
+[default]
+aws_access_key_id = access_key
+aws_secret_access_key = secret_key
 ```
-Instalo AWS CLI:
+Luego, actualiza el archivo config.json de S3Upload con tus credenciales:
 ```
-sudo ./aws/install
-```
-Para asegurarnos que se instalo bien:
-```
-aws --version
-```
-Luego, tenemos que configurar nuestras credenciales:
-```
-aws configure
-```
-
-Nos pedirá ingresar la siguiente información (la cual se solicita a INFRA):
-```
-AWS Access Key ID [None]: YOUR_ACCESS_KEY
-AWS Secret Access Key [None]: YOUR_SECRET_KEY
-Default region name [None]: us-east-1
-Default output format [None]: json
-```
-Con esto ya tenemos instalado AWS.
-
-Lo que sigues es configurar el archivo que realizará la carga, para ello copiar el archivo UploadFilesToSFTP.sh a la ruta /usr/sbin/ y se deberá modificar los siguientes datos:
-```
-numberOfAudios=100 						#NUMERO DE AUDIOS QUE TOMARA POR MINUTO
-directory="/home/usuarioftp" 					#RUTA DEL USUARIO FTP
-logFile="/tmp/LogUploadFilesToSFTP.log"				# RUTA DE LOGS
-LogEnabled=1							# 0 PARA DESACTIVAR LOGS Y 1 PARA ACTIVAR
-remotedirPath="/speechanalytics"				#RUTA DEL BUCKET EN S3
-BUCKET_NAME="sftp-test-speech"					#NOMBRE DEL BUCKET DE S3
-parallelJobs=2							#NUMERO DE PROCESO EN PARALELO (POR LO GENERAL SE PONE EL MISMO NUMERO DE PROCESADORES DEL SERVER LINUX)
+{
+    "Log_Folder": "/tmp/LogUploadFilesToSFTP.log",	//RUTA DEL ARCHIVO LOG
+    "Temp_Directory": "/home/usuarioftp/",		//RUTA INICIAL DE LAS CARPETAS FTPSPEECH1, FTPSPECCH2, ETC	
+    "cantidad_archivos": "25",				//CANTIDAD DE ARCHIVOS QUE TOMARA CADA MINUTO POR CADA INSTANCIA (LOS PROCESA EN SIMULTANEO)
+    "accessKey": "access_key",				//SOLICITAR A INFRA
+    "secretKey": "secret_key",				//SOLICITAR A INFRA
+    "bucketName": "bucket_name",			//SOLICITAR A INFRA
+    "region": "us-east-1"				//SOLICITAR A INFRA
+}
 ```
 Luego nos aseguramos el formato unix y damos permisos al archivo copiado:
 ```
-dos2unix /usr/sbin/UploadFilesToSFTP.sh
-chown -R root:root /usr/sbin/UploadFilesToSFTP.sh
-chmod +x /usr/sbin/UploadFilesToSFTP.sh
+dos2unix /home/S3Upload/app.js
+chown -R root:root /home/S3Upload/app.js
+chmod +x /home/S3Upload/app.js
 ```
 
 Luego programamos en crontab el script sh (en el ejemplo se tienen 6 nodos, se deberá adecuar en base a lo que se requiere):
@@ -143,12 +125,12 @@ nano /etc/crontab
 ```
 ```
 # WAV Files to SFTP
-* * * * * root /usr/sbin/UploadFilesToSFTP.sh 1;
-* * * * * root /usr/sbin/UploadFilesToSFTP.sh 2;
-* * * * * root /usr/sbin/UploadFilesToSFTP.sh 3;
-* * * * * root /usr/sbin/UploadFilesToSFTP.sh 4;
-* * * * * root /usr/sbin/UploadFilesToSFTP.sh 5;
-* * * * * root /usr/sbin/UploadFilesToSFTP.sh 6;
+* * * * * root /usr/bin/node /home/S3Upload/app.js 1
+* * * * * root /usr/bin/node /home/S3Upload/app.js 2
+* * * * * root /usr/bin/node /home/S3Upload/app.js 3
+* * * * * root /usr/bin/node /home/S3Upload/app.js 4
+* * * * * root /usr/bin/node /home/S3Upload/app.js 5
+* * * * * root /usr/bin/node /home/S3Upload/app.js 6
 ```
 En la ruta principal del SFTP debe existir la siguiente carpeta:
 ```
