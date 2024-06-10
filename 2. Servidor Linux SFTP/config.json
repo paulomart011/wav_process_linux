@@ -1,0 +1,9 @@
+{
+    "Log_Folder": "/tmp/LogUploadFilesToSFTP.log",
+    "Temp_Directory": "/home/usuarioftp/",
+    "cantidad_archivos": "50",
+    "accessKey": "access_key",
+    "secretKey": "secret_key",
+    "bucketName": "bucket_name",
+    "region": "us-east-1"
+}
