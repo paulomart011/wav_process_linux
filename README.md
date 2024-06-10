@@ -87,6 +87,11 @@ Si la conexión es exitosa, ya estaria listo el FTP en el servidor intermedio.
 
 ## 2. Configuración subida a SFTP en Servidor Intermedio Linux
 
+Aqui definiremos el proceso que se encargará de subir los archivos del FTP del linux intermedio al SFTP final, este proceso se ejecuta cada 1 minuto y lo que haces es:
+
+1. Tomar X archivos y cambiarles el nombre (agregando "PROCESS_" al nombre).
+2. Luego usando el SDK de AWS S3 con el método "putObject" sube al archivo al repo final.
+
 Crea la carpeta /home/S3Upload y copia todos los archivos de la carpeta "2. Servidor Linux SFTP".
 
 Posicionado en la carpeta S3Upload, ejecuta el siguiente comando:
